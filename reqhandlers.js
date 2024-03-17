@@ -158,43 +158,47 @@ if (err) { console.log ("author could not be added ")
 }
 
 
-
-function deleteOneAuthor(req, res){  
-  
-  const id = req.url.split('/')[2];
-  console.log(id)
-  const allItems = JSON.parse(fs.readFileSync(authorsDbPath))
-  //console.log(allItems)
-   const itemIndex = allItems.findIndex((item) =>  {return item.Id === parseInt(id)});
-  
-
-  if (itemIndex === -1){
-    res.writeHead(404);
-    res.end(JSON.stringify("message: author does not exist"))
-  }
-   
-   allItems.splice(itemIndex, 1)
-   fs.writeFile(authorsDbPath, JSON.stringify(allItems), (err) => {
-
-    if (err) { 
-      res.writeHead(404);
-      res.end(JSON.stringify("author was not deleted"));
-  
-  
-     }
-     res.end("author sucessfully deleted")
+function updateAuthor(req,res) {  const id = req.url.split('/')[2]
+ const allItems = JSON.parse(fs.readFileSync(authorsDbPath));
+  console.log(allItems)
+ const itemIndex = allItems.findIndex((item) => { return item.id === parseInt(id)});
+ if (itemIndex === -1) { 
+  res.writeHead(404); 
+ res.end("Author does not exist");
+}
 
 
+const item = []
+req.on("data", (chunk) => { 
+  item.push(chunk)
+})
+req.on("end", () => { 
+  const info = Buffer.concat(item).toString()
+  const update = JSON.parse(info)
+  console.log (update)
 
-    
-   
-   })
-   
+allItems[itemIndex] = {...allItems[itemIndex],...update};
+console.log(allItems)
+
+ fs.writeFile(authorsDbPath, JSON.stringify(allItems), (err) => { 
+   if (err) { 
+   res.writeHead(404);
+   res.end(JSON.stringify("update was not sucessful"));
+
+   }
+   res.end(JSON.stringify(allItems[itemIndex]))
+  })
+
+
+
+})
+
 
 
 }
 
-    module.exports = {getAllBooks,updateBook,deleteOneBook,getAllAuthors,createAuthor,deleteOneAuthor}
+
+    module.exports = {getAllBooks,updateBook,deleteOneBook,getAllAuthors,createAuthor,updateAuthor}
 
 //module.exports * = reqhandlers.js
 
